@@ -5,6 +5,18 @@ state("Scoot Kaboom and the Tomb of Doom")
 	float gameTime: "UnityPlayer.dll", 0x01274000, 0x44, 0xB04, 0x3DC, 0x0, 0xC, 0x2DC, 0x50;
 }
 
+init
+{
+	vars.lastValidGameTime = 0;
+}
+
+update
+{
+	if (current.gameTime != 0) {
+		vars.lastValidGameTime = current.gameTime;
+	}
+}
+
 start
 {
 	return current.level == 0 && old.menuState == 4 && current.menuState == 0;
@@ -12,17 +24,26 @@ start
 
 split
 {
-	return current.level != old.level;
+	// Levels
+	if (current.level > old.level) {
+		return true;
+	}
+
+	// Ending split
+	return current.level == 18 && current.gameTime == 0;
 }
 
 reset
 {
-	return current.menuState == 4;
+	if (current.menuState == 4) {
+		vars.lastValidGameTime = 0;
+		return true;
+	}
 }
 
 gameTime
 {
-	return TimeSpan.FromSeconds(current.gameTime);
+	return TimeSpan.FromSeconds(vars.lastValidGameTime);
 }
 
 isLoading
